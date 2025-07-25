@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn Checkers | Pro Checkers</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/main.css"> <!-- Link to shared CSS -->
+    <style>
+        /* --- Learn Page Specific Styles --- */
+        /* (Include all the previous styles from the last learn.html code block here) */
+        /* For brevity, I'm not repeating them, but they should be exactly the same as before */
+         .learn-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            width: 100%;
+            background: rgba(30, 30, 40, 0.9);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+            margin: 20px auto;
+        }
+        .learn-header {
+            padding: 25px;
+            text-align: center;
+            background: rgba(20, 20, 30, 0.95);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .learn-header h1 {
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        .learn-header p {
+            opacity: 0.8;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .learn-content {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .rules-section {
+            margin-bottom: 30px;
+            background: rgba(40, 40, 50, 0.5);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .rules-section h2 {
+            color: #3498db;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .rules-section h3 {
+             color: #2ecc71;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+        .rules-section p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .rules-section ul, .rules-section ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .rules-section li {
+            margin-bottom: 8px;
+        }
+        .highlight-text {
+            color: #f1c40f;
+            font-weight: bold;
+        }
+        .example-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        .example-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #3498db;
+        }
+        /* Example Board Styles - Adapted from main game */
+        .example-board {
+             position: relative;
+            width: 100%;
+            max-width: 300px; /* Smaller board for examples */
+            height: 0;
+            padding-bottom: 100%; /* Makes it square */
+            background: #8B4513;
+            border: 8px solid #5d4037;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            margin: 10px 0;
+        }
+        /* Reuse board styles from main game */
+        .example-board .board-row {
+            display: flex;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 12.5%;
+        }
+        .example-board .board-square {
+            position: relative;
+            width: 12.5%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .example-board .light {
+            background-color: #f0d9b5;
+        }
+        .example-board .dark {
+            background-color: #b58863;
+        }
+        .example-board .coordinates {
+            position: absolute;
+            font-size: 8px;
+            color: rgba(0, 0, 0, 0.6);
+        }
+        .example-board .coordinate-file {
+            bottom: 1px;
+            right: 2px;
+        }
+        .example-board .coordinate-rank {
+            top: 1px;
+            left: 2px;
+        }
+        .example-board .piece {
+             width: 65%;
+            height: 65%;
+            border-radius: 50%;
+            /* cursor: pointer; */ /* Not needed for static examples */
+            /* transition: all 0.2s ease; */ /* Not needed for static examples */
+            z-index: 2;
+            position: relative; /* For king symbol positioning */
+        }
+        .example-board .piece.red {
+            background: radial-gradient(circle at 30% 30%, #ff4d4d, #cc0000);
+            border: 2px solid #990000;
+        }
+        .example-board .piece.white {
+            background: radial-gradient(circle at 30% 30%, #ffffff, #cccccc);
+            border: 2px solid #999999;
+        }
+        .example-board .piece.king::after {
+            content: "♔";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: gold;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        /* Example-specific highlight styles */
+        .example-board .valid-move {
+             position: absolute;
+            width: 15px;
+            height: 15px;
+            background: rgba(46, 204, 113, 0.7); /* Green */
+            border-radius: 50%;
+            z-index: 1;
+        }
+        .example-board .capture-move {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid rgba(231, 76, 60, 0.7); /* Red */
+            z-index: 1;
+        }
+        .example-description {
+            text-align: center;
+            font-style: italic;
+            opacity: 0.9;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        .strategy-tip {
+            background: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid #2ecc71;
+            padding: 10px 15px;
+            margin: 15px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .strategy-tip h4 {
+            color: #2ecc71;
+            margin-top: 0;
+        }
+        @media (min-width: 768px) {
+             .learn-content {
+                flex-direction: row;
+                flex-wrap: wrap;
+             }
+             .rules-section {
+                flex: 1;
+                min-width: 300px;
+                margin-right: 20px;
+                margin-bottom: 20px;
+             }
+             .example-container {
+                 align-items: stretch;
+             }
+        }
+        /* --- End of Learn Page Specific Styles --- */
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo"><i class="fas fa-crown"></i> Pro Checkers</a>
+        <div class="nav-links">
+            <a href="login.html" class="nav-link">Play</a>
+            <a href="puzzles.html" class="nav-link">Puzzles</a>
+            <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+            <a href="learn.html" class="nav-link active">Learn</a>
+        </div>
+        <div class="nav-buttons">
+            <a href="login.html" class="btn btn-outline btn-sm">Login</a>
+            <a href="register.html" class="btn btn-primary btn-sm">Sign Up</a>
+        </div>
+    </nav>
+
+    <div class="learn-container">
+        <div class="learn-header">
+            <h1><i class="fas fa-chalkboard-teacher"></i> Master the Game of Checkers</h1>
+            <p>Comprehensive guide to rules, strategies, and advanced techniques to elevate your play.</p>
+        </div>
+
+        <div class="learn-content">
+            <div class="rules-section">
+                <h2>Getting Started</h2>
+                <p>Checkers, also known as Draughts, is a classic strategy board game enjoyed worldwide. Despite its simple rules, it offers deep strategic complexity. This guide will take you from beginner to advanced concepts.</p>
+
+                <h3>Board and Setup</h3>
+                <p>The game is played on an 8x8 checkerboard, identical to a chessboard. Only the <span class="highlight-text">dark squares</span> are used for play.</p>
+                <ul>
+                    <li>Each player starts with <span class="highlight-text">12 pieces</span>, placed on the dark squares of the first three rows closest to them.</li>
+                    <li>One player has <span class="highlight-text">Red</span> pieces (or Black), and the other has <span class="highlight-text">White</span> pieces.</li>
+                    <li><span class="highlight-text">Red moves first</span>.</li>
+                </ul>
+                <div class="example-container">
+                    <div class="example-title">Initial Board Setup</div>
+                    <div class="example-board" id="setupBoard"></div>
+                    <div class="example-description">Standard starting position with 12 pieces per side.</div>
+                </div>
+            </div>
+
+            <div class="rules-section">
+                <h2>Movement and Capturing</h2>
+
+                <h3>Basic Movement</h3>
+                <p>All pieces move diagonally on the dark squares.</p>
+                <ul>
+                    <li><span class="highlight-text">Regular pieces (Men)</span> can only move <span class="highlight-text">forward</span> one square diagonally to an adjacent empty dark square.</li>
+                    <li><span class="highlight-text">Kings</span> (crowned pieces) can move <span class="highlight-text">any number of vacant squares</span> diagonally, both forwards and backwards.</li>
+                </ul>
+                <div class="example-container">
+                    <div class="example-title">Regular Piece Movement</div>
+                    <div class="example-board" id="movementBoard"></div>
+                    <div class="example-description">Red piece can move to the highlighted green squares.</div>
+                </div>
+                <div class="example-container">
+                    <div class="example-title">King Movement</div>
+                    <div class="example-board" id="kingMovementBoard"></div>
+                    <div class="example-description">King can move to any highlighted green square along diagonals.</div>
+                </div>
+
+                <h3>Capturing Opponent Pieces</h3>
+                <p>Capturing is mandatory in Checkers.</p>
+                <ul>
+                    <li>To capture, a piece <span class="highlight-text">jumps</span> diagonally over an adjacent opponent's piece, landing in the empty square immediately beyond it.</li>
+                    <li>The captured piece is then removed from the board.</li>
+                    <li>If a piece can make multiple captures in a single turn, it <span class="highlight-text">must make all of them</span>.</li>
+                    <li>If a regular piece reaches the far end of the board (the "king row") during a capture sequence, it becomes a King but continues its turn if further captures are possible.</li>
+                </ul>
+                <div class="example-container">
+                    <div class="example-title">Single Capture</div>
+                    <div class="example-board" id="captureBoard"></div>
+                    <div class="example-description">Red piece jumps over the white piece. Landing square is highlighted red.</div>
+                </div>
+                <div class="example-container">
+                    <div class="example-title">Multiple Capture</div>
+                    <div class="example-board" id="multiCaptureBoard"></div>
+                    <div class="example-description">Red piece makes two consecutive captures in one turn. Landing squares are highlighted red.</div>
+                </div>
+
+                <div class="strategy-tip">
+                    <h4><i class="fas fa-lightbulb"></i> Strategy Tip</h4>
+                    <p>Always look for capture opportunities. Forcing your opponent to capture can sometimes set up a better position for you. Plan your moves to create multiple capture options in future turns.</p>
+                </div>
+            </div>
+
+            <div class="rules-section">
+                <h2>Advanced Concepts</h2>
+
+                <h3>Making Kings</h3>
+                <p>When a regular piece (Man) reaches the opponent's back rank (the farthest row from its starting position), it is promoted to a <span class="highlight-text">King</span>.</p>
+                <ul>
+                    <li>Kings are more powerful as they can move and capture both forwards and backwards.</li>
+                    <li>In our implementation, Kings are marked with a crown symbol (♔).</li>
+                </ul>
+                <div class="example-container">
+                    <div class="example-title">Promotion to King</div>
+                    <div class="example-board" id="kingBoard"></div>
+                    <div class="example-description">Red piece moves to the king row and becomes a King.</div>
+                </div>
+
+                <h3>Winning the Game</h3>
+                <p>You win by achieving one of the following conditions:</p>
+                <ol>
+                    <li><span class="highlight-text">Capture all</span> of your opponent's pieces.</li>
+                    <li><span class="highlight-text">Block</span> your opponent so they have no legal moves left.</li>
+                    <li>(If using a timer) Your opponent <span class="highlight-text">runs out of time</span>.</li>
+                </ol>
+
+                <h3>Draw Conditions</h3>
+                <p>Games can end in a draw under specific circumstances:</p>
+                <ul>
+                    <li><span class="highlight-text">Mutual Agreement</span>: Both players agree to a draw.</li>
+                    <li><span class="highlight-text">Repetition</span>: The same position occurs multiple times (rules may vary).</li>
+                    <li><span class="highlight-text">Insufficient Material</span>: Neither player has enough pieces to achieve a win (e.g., King vs. King).</li>
+                </ul>
+
+                <div class="strategy-tip">
+                    <h4><i class="fas fa-lightbulb"></i> Strategy Tip</h4>
+                    <p>Control the center of the board to maximize your piece mobility. Try to trade pieces when you are ahead, and avoid trades when you are behind. Building a strong "back line" of pieces can be a defensive strategy, but it can also limit your own mobility.</p>
+                </div>
+            </div>
+
+            <div class="rules-section">
+                <h2>Practice Makes Perfect</h2>
+                <p>Now that you understand the rules, head over to the <a href="puzzles.html" style="color: #3498db;">Puzzles</a> section to test your skills and learn common tactical patterns!</p>
+                <p>You can also play against friends or random opponents on our <a href="login.html" style="color: #3498db;">Play</a> page to gain experience.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Pro Checkers. All rights reserved.</p>
+    </footer>
+
+    <!-- Script Tag at the end of the body -->
+    <script>
+        // --- Function to render a static example board ---
+        // Uses simplified logic based on the main game's renderBoard function
+        function renderExampleBoard(containerId, boardState, highlights = {}) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            container.innerHTML = ''; // Clear previous content
+            const ROWS = 8;
+            const COLS = 8;
+
+            for (let row = 0; row < ROWS; row++) {
+                const rowElement = document.createElement('div');
+                rowElement.className = 'board-row';
+                rowElement.style.top = `${(row / ROWS) * 100}%`;
+                for (let col = 0; col < COLS; col++) {
+                    const square = document.createElement('div');
+                    square.className = `board-square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+                    square.dataset.row = row;
+                    square.dataset.col = col;
+
+                    // Add coordinates (only on edges)
+                    if (row === ROWS - 1) { // Bottom row (rank 1)
+                        const fileLabel = document.createElement('div');
+                        fileLabel.className = 'coordinates coordinate-file';
+                        fileLabel.textContent = String.fromCharCode(97 + col); // a-h
+                        square.appendChild(fileLabel);
+                    }
+                    if (col === 0) { // Left column (file a)
+                        const rankLabel = document.createElement('div');
+                        rankLabel.className = 'coordinates coordinate-rank';
+                        rankLabel.textContent = ROWS - row; // 8-1
+                        square.appendChild(rankLabel);
+                    }
+
+                    // Add piece based on boardState
+                    const piece = boardState[row][col];
+                    if (piece) {
+                        const pieceElement = document.createElement('div');
+                        pieceElement.className = `piece ${piece.color} ${piece.king ? 'king' : ''}`;
+                        pieceElement.dataset.row = row;
+                        pieceElement.dataset.col = col;
+                        square.appendChild(pieceElement);
+                    }
+
+                    // Add highlight based on highlights object
+                    // KEY CORRECTION: Check if the highlights object has this square as a KEY
+                    const moveKey = `${row},${col}`;
+                    if (highlights.hasOwnProperty(moveKey)) {
+                        const moveIndicator = document.createElement('div');
+                        // KEY CORRECTION: Use the VALUE (array length) to determine type
+                        moveIndicator.className = highlights[moveKey].length > 0 ? 'capture-move' : 'valid-move';
+                        square.appendChild(moveIndicator);
+                    }
+
+                    rowElement.appendChild(square);
+                }
+                container.appendChild(rowElement);
+            }
+        }
+
+        // --- Example Board Definitions ---
+
+        // 1. Initial Setup (Standard 8x8 board)
+        function createInitialBoard() {
+             const ROWS = 8;
+             const COLS = 8;
+             let board = Array(ROWS).fill().map(() => Array(COLS).fill(null));
+             // Place red pieces (top three rows)
+             for (let row = 0; row < 3; row++) {
+                 for (let col = 0; col < COLS; col++) {
+                     if ((row + col) % 2 === 1) {
+                         board[row][col] = { color: 'red', king: false };
+                     }
+                 }
+             }
+             // Place white pieces (bottom three rows)
+             for (let row = 5; row < ROWS; row++) {
+                 for (let col = 0; col < COLS; col++) {
+                     if ((row + col) % 2 === 1) {
+                         board[row][col] = { color: 'white', king: false };
+                     }
+                 }
+             }
+             return board;
+        }
+        const setupBoardState = createInitialBoard();
+
+        // 2. Regular Movement Example - FIXED
+        // Place a red piece with clear, valid forward moves
+        const movementBoardState = [
+            [null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null],
+            [null,null,{color:'red', king:false},null,null,null,null,null], // Red piece at (6,2)
+            [null,null,null,null,null,null,null,null]
+        ];
+        // Highlights for valid moves from (6,2): (5,1) and (5,3)
+        // Note: (5,1) and (5,3) are empty in this setup, so they are valid moves.
+        const movementHighlights = {
+            "5,1": [], // Valid move up-left
+            "5,3": []  // Valid move up-right
+        };
+
+        // 3. King Movement Example - FIXED to show multi-square movement
+        const kingMovementBoardState = [
+            [null,null,null,null,null,null,null,null], // 0
+            [null,null,null,null,null,null,null,null], // 1
+            [null,null,null,null,null,null,null,null], // 2
+            [null,null,null,null,null,null,null,null], // 3
+            [null,null,null,{color:'red', king:true},null,null,null,null], // 4: Red King at (4,3)
+            [null,null,null,null,null,null,null,null], // 5
+            [null,null,null,null,null,null,null,null], // 6
+            [null,null,null,null,null,null,null,null]  // 7
+        ];
+        // Function to calculate ALL possible king moves from a position, stopping at the board edge.
+        // This mimics the logic from your main game file for kings.
+        function calculateKingMovesForExampleFull(startRow, startCol) {
+            const moves = {};
+            // The four diagonal directions a king can move
+            const directions = [[1, -1], [1, 1], [-1, -1], [-1, 1]];
+
+            for (const [dr, dc] of directions) {
+                let newRow = startRow + dr;
+                let newCol = startCol + dc;
+                // Move in this direction until the edge of the board
+                while (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
+                    // For the example, we assume the path is clear (no other pieces)
+                    // In a real game, you'd check board[newRow][newCol]
+                    moves[`${newRow},${newCol}`] = [];
+                    newRow += dr;
+                    newCol += dc;
+                }
+            }
+            return moves;
+        }
+        const kingMovementHighlights = calculateKingMovesForExampleFull(4, 3);
+        // console.log(kingMovementHighlights); // Uncomment to see all generated moves in browser console
+
+        // 4. Single Capture Example - FIXED
+        const captureBoardState = [
+            [null,null,null,null,null,null,null,null], // 0
+            [null,null,null,null,null,null,null,null], // 1
+            [null,null,null,null,null,null,null,null], // 2
+            [null,null,null,null,null,null,null,null], // 3
+            [null,null,null,null,null,null,null,null], // 4
+            [null,null,{color:'white', king:false},null,null,null,null,null], // 5: White at (5,2)
+            [null,{color:'red', king:false},null,null,null,null,null,null],  // 6: Red at (6,1)
+            [null,null,null,null,null,null,null,null]  // 7
+        ];
+        const captureHighlights = {
+            "4,3": [{row: 5, col: 2}] // Red captures white, lands here
+        };
+
+        // 5. Multiple Capture Example - FIXED piece position
+        // Move the upper white piece to c6 (row 2, col 2) as requested.
+        // Original position was row 2, col 1 (b6).
+        const correctMultiCaptureBoardState = [
+            [null,null,null,null,null,null,null,null], // 0
+            [null,null,null,null,null,null,null,null], // 1
+            [null,null,{color:'white', king:false},null,null,null,null,null], // 2: White MOVED to (2,2) -> c6
+            [null,null,null,null,null,null,null,null], // 3
+            [null,null,{color:'white', king:false},null,null,null,null,null], // 4: White at (4,2) -> c4
+            [null,null,null,{color:'red', king:false},null,null,null,null],   // 5: Red at (5,3) -> d3
+            [null,null,null,null,null,null,null,null], // 6
+            [null,null,null,null,null,null,null,null]  // 7
+        ];
+        // Keep the highlights the same, as they represent the landing squares for the jumps.
+        // 1st jump: Red (5,3) -> (3,1) over (4,2). Captures (4,2).
+        // 2nd jump: Red (3,1) -> (1,3) over (2,2) (the piece we just moved to c6). Captures (2,2).
+        // Correction for the second jump description based on the actual capture logic:
+        // The piece at (2,2) is captured when jumping from (3,1) to (1,3).
+        const multiCaptureHighlights = {
+            "3,1": [{row: 4, col: 2}], // 1st jump: Red (5,3/d3) -> (3,1/b5), captures White (4,2/c4)
+            "1,3": [{row: 2, col: 2}]  // 2nd jump: Red (3,1/b5) -> (1,3/f7), captures White (2,2/c6) - this is the piece we moved
+        };
+
+        // 6. King Promotion Example - FIXED
+        const correctKingBoardState = [
+            [null,null,null,null,null,null,null,null], // 0: King row for Red
+            [null,null,{color:'red', king:false},null,null,null,null,null], // 1: Red at (1,2)
+            [null,null,null,null,null,null,null,null], // 2
+            [null,null,null,null,null,null,null,null], // 3
+            [null,null,null,null,null,null,null,null], // 4
+            [null,null,null,null,null,null,null,null], // 5
+            [null,null,null,null,null,null,null,null], // 6
+            [null,null,null,null,null,null,null,null]  // 7
+        ];
+        const kingHighlights = {
+            "0,1": [], // Red moves to king row
+            "0,3": []  // Red moves to king row
+        };
+
+
+        // --- Initialize Examples on Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderExampleBoard('setupBoard', setupBoardState);
+            renderExampleBoard('movementBoard', movementBoardState, movementHighlights); // Use corrected state/highlights
+            renderExampleBoard('kingMovementBoard', kingMovementBoardState, kingMovementHighlights); // Show all king moves
+            renderExampleBoard('captureBoard', captureBoardState, captureHighlights);
+            renderExampleBoard('multiCaptureBoard', correctMultiCaptureBoardState, multiCaptureHighlights); // Use corrected state/highlights
+            renderExampleBoard('kingBoard', correctKingBoardState, kingHighlights); // Use corrected
+        });
+    </script>
+    <!-- End of Script Tag -->
+</body>
+</html>

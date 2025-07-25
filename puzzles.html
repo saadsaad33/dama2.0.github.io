@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzles | Pro Checkers</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <!-- We can reuse the game board styles by including them here or duplicating key parts -->
+    <style>
+        /* --- Puzzle Specific Styles --- */
+        .puzzles-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            width: 100%;
+            background: rgba(30, 30, 40, 0.9);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+            margin: 20px auto;
+        }
+        .puzzles-header {
+            padding: 20px;
+            text-align: center;
+            background: rgba(20, 20, 30, 0.95);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .puzzles-header h1 {
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        .puzzles-content {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .puzzles-list-section {
+            margin-bottom: 30px;
+        }
+        .puzzles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .puzzle-card {
+            background: rgba(40, 40, 50, 0.9);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .puzzle-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            border-color: #3498db;
+        }
+        .puzzle-card h3 {
+            margin-bottom: 10px;
+            color: #3498db;
+        }
+        .puzzle-card p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+        .puzzle-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        .puzzle-difficulty.easy { color: #2ecc71; }
+        .puzzle-difficulty.medium { color: #f1c40f; }
+        .puzzle-difficulty.hard { color: #e74c3c; }
+
+        /* Puzzle Game Area */
+        .puzzle-game-area {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            background: rgba(20, 20, 30, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .puzzle-game-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 0 5px;
+        }
+        .puzzle-info {
+            flex: 1;
+        }
+        .puzzle-info h2 {
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+        .puzzle-info p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        .puzzle-controls {
+            display: flex;
+            gap: 10px;
+        }
+        .puzzle-btn {
+             padding: 8px 15px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+        .puzzle-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        .puzzle-btn.reset {
+            background: #e74c3c;
+        }
+        .puzzle-btn.reset:hover {
+            background: #c0392b;
+        }
+        .puzzle-btn.solve {
+            background: #9b59b6;
+        }
+        .puzzle-btn.solve:hover {
+            background: #8e44ad;
+        }
+        .puzzle-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            width: 100%;
+            display: none;
+        }
+        .puzzle-message.success {
+            background-color: rgba(46, 204, 113, 0.2);
+            border: 1px solid #2ecc71;
+            color: #a8ffce;
+        }
+        .puzzle-message.info {
+             background-color: rgba(52, 152, 219, 0.2);
+            border: 1px solid #3498db;
+            color: #a8d0ff;
+        }
+        /* Reuse game board styles */
+        .puzzle-board-container {
+             padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        /* Import key game board styles here or link to game.css if separated */
+        .game-board {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 0;
+            padding-bottom: 100%;
+            background: #8B4513;
+            border: 10px solid #5d4037;
+            border-radius: 5px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .board-row {
+            display: flex;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 12.5%;
+        }
+        .board-square {
+            position: relative;
+            width: 12.5%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .light {
+            background-color: #f0d9b5;
+        }
+        .dark {
+            background-color: #b58863;
+        }
+        .coordinates {
+            position: absolute;
+            font-size: 10px;
+            color: rgba(0, 0, 0, 0.6);
+        }
+        .coordinate-file {
+            bottom: 1px;
+            right: 2px;
+        }
+        .coordinate-rank {
+            top: 1px;
+            left: 2px;
+        }
+        .piece {
+            width: 70%;
+            height: 70%;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 2;
+        }
+        .piece:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+        .piece.selected {
+            box-shadow: 0 0 0 3px #2ecc71, 0 0 20px rgba(46, 204, 113, 0.7);
+        }
+        .piece.red {
+            background: radial-gradient(circle at 30% 30%, #ff4d4d, #cc0000);
+            border: 2px solid #990000;
+        }
+        .piece.white {
+            background: radial-gradient(circle at 30% 30%, #ffffff, #cccccc);
+            border: 2px solid #999999;
+        }
+        .piece.king::after {
+            content: "♔";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: gold;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        .valid-move {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(46, 204, 113, 0.7);
+            border-radius: 50%;
+            z-index: 1;
+        }
+        .capture-move {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid rgba(231, 76, 60, 0.7);
+            z-index: 1;
+        }
+        @media (min-width: 768px) {
+             .puzzles-content {
+                flex-direction: row;
+             }
+             .puzzles-list-section {
+                width: 300px;
+                margin-right: 20px;
+                margin-bottom: 0;
+             }
+             .puzzle-game-area {
+                flex: 1;
+             }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo"><i class="fas fa-crown"></i> Pro Checkers</a>
+        <div class="nav-links">
+            <a href="login.html" class="nav-link">Play</a>
+            <a href="puzzles.html" class="nav-link active">Puzzles</a>
+            <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+            <a href="learn.html" class="nav-link">Learn</a>
+        </div>
+        <div class="nav-buttons">
+            <a href="login.html" class="btn btn-outline btn-sm">Login</a>
+            <a href="register.html" class="btn btn-primary btn-sm">Sign Up</a>
+        </div>
+    </nav>
+
+    <div class="puzzles-container">
+        <div class="puzzles-header">
+            <h1>Checkers Puzzles</h1>
+            <p>Test your skills and improve your game with our collection of puzzles.</p>
+        </div>
+
+        <div class="puzzles-content">
+            <!-- Puzzle List Section -->
+            <div class="puzzles-list-section">
+                <h2>Available Puzzles</h2>
+                <div class="puzzles-grid" id="puzzlesGrid">
+                    <!-- Puzzle cards will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Puzzle Game Area (Initially Hidden) -->
+            <div class="puzzle-game-area" id="puzzleGameArea">
+                <div class="puzzle-game-header">
+                    <div class="puzzle-info">
+                        <h2 id="puzzleTitle">Puzzle Title</h2>
+                        <p id="puzzleDescription">Puzzle description will appear here.</p>
+                    </div>
+                    <div class="puzzle-controls">
+                        <button class="puzzle-btn reset" id="resetPuzzleBtn">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                        <button class="puzzle-btn solve" id="solvePuzzleBtn">
+                            <i class="fas fa-lightbulb"></i> Solve
+                        </button>
+                        <button class="puzzle-btn" id="backToPuzzlesBtn">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                    </div>
+                </div>
+                <div class="puzzle-message" id="puzzleMessage"></div>
+                <div class="puzzle-board-container">
+                    <div class="game-board" id="puzzleBoard">
+                        <!-- Puzzle board will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Pro Checkers. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // --- Example Puzzle Data (Mock) ---
+        const puzzles = [
+            {
+                id: 1,
+                title: "Basic Capture",
+                description: "Capture the white piece in one move.",
+                difficulty: "easy",
+                // Board setup: 0=empty light, 1=empty dark, 2=red, 3=white, 4=red king, 5=white king
+                board: [
+                    [0, 2, 0, 1, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0, 1, 0],
+                    [0, 1, 0, 1, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0, 1, 0],
+                    [0, 3, 0, 2, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0, 1, 0],
+                    [0, 1, 0, 1, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0, 1, 0]
+                ],
+                solution: [{from: {row: 4, col: 3}, to: {row: 2, col: 1}}] // Example move
+            },
+            {
+                id: 2,
+                title: "Double Trouble",
+                description: "Capture two white pieces in one turn.",
+                difficulty: "medium",
+                board: [
+                    [0, 1, 0, 1, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0, 1, 0],
+                    [0, 3, 0, 1, 0, 3, 0, 1],
+                    [1, 0, 2, 0, 1, 0, 1, 0],
+                    [0, 1, 0, 1, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0, 1, 0],
+                    [0, 1, 0, 1, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0, 1, 0]
+                ],
+                solution: [
+                    {from: {row: 3, col: 2}, to: {row: 1, col: 0}},
+                    // Note: Real solution would be a single move object representing the full sequence
+                    // This is simplified for mockup
+                ]
+            },
+            {
+                id: 3,
+                title: "King's Path",
+                description: "Use your king to navigate and capture.",
+                difficulty: "hard",
+                board: [
+                    [0, 5, 0, 1, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0, 1, 0],
+                    [0, 1, 0, 1, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0, 1, 0],
+                    [0, 1, 0, 4, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0, 1, 0],
+                    [0, 1, 0, 1, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0, 1, 0]
+                ],
+                solution: [{from: {row: 4, col: 3}, to: {row: 2, col: 1}}] // Simplified
+            }
+        ];
+
+        // --- Puzzle Game State ---
+        let currentPuzzle = null;
+        let puzzleBoardState = [];
+        let puzzleSelectedPiece = null;
+        let puzzleValidMoves = {};
+
+        // --- DOM Elements ---
+        const puzzlesGrid = document.getElementById('puzzlesGrid');
+        const puzzleGameArea = document.getElementById('puzzleGameArea');
+        const puzzleBoardElement = document.getElementById('puzzleBoard');
+        const puzzleTitleElement = document.getElementById('puzzleTitle');
+        const puzzleDescriptionElement = document.getElementById('puzzleDescription');
+        const puzzleMessageElement = document.getElementById('puzzleMessage');
+        const resetPuzzleBtn = document.getElementById('resetPuzzleBtn');
+        const solvePuzzleBtn = document.getElementById('solvePuzzleBtn');
+        const backToPuzzlesBtn = document.getElementById('backToPuzzlesBtn');
+
+        // --- Initialize Puzzle List ---
+        function initPuzzleList() {
+            puzzlesGrid.innerHTML = '';
+            puzzles.forEach(puzzle => {
+                const card = document.createElement('div');
+                card.className = 'puzzle-card';
+                card.innerHTML = `
+                    <h3>${puzzle.title}</h3>
+                    <p>${puzzle.description}</p>
+                    <div class="puzzle-meta">
+                        <span>ID: ${puzzle.id}</span>
+                        <span class="puzzle-difficulty ${puzzle.difficulty}">${puzzle.difficulty.charAt(0).toUpperCase() + puzzle.difficulty.slice(1)}</span>
+                    </div>
+                `;
+                card.addEventListener('click', () => loadPuzzle(puzzle));
+                puzzlesGrid.appendChild(card);
+            });
+        }
+
+        // --- Load a Puzzle ---
+        function loadPuzzle(puzzle) {
+            currentPuzzle = puzzle;
+            puzzleBoardState = JSON.parse(JSON.stringify(puzzle.board)); // Deep copy
+            puzzleSelectedPiece = null;
+            puzzleValidMoves = {};
+            puzzleMessageElement.style.display = 'none';
+
+            puzzleTitleElement.textContent = puzzle.title;
+            puzzleDescriptionElement.textContent = puzzle.description;
+
+            puzzlesGrid.parentElement.style.display = 'none'; // Hide list
+            puzzleGameArea.style.display = 'flex'; // Show game area
+
+            renderPuzzleBoard();
+        }
+
+        // --- Render Puzzle Board ---
+        function renderPuzzleBoard() {
+            puzzleBoardElement.innerHTML = '';
+            for (let row = 0; row < 8; row++) {
+                const rowElement = document.createElement('div');
+                rowElement.className = 'board-row';
+                rowElement.style.top = `${(row / 8) * 100}%`;
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    square.className = `board-square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+                    square.dataset.row = row;
+                    square.dataset.col = col;
+
+                    // Add coordinates
+                    if (row === 7) {
+                        const fileLabel = document.createElement('div');
+                        fileLabel.className = 'coordinates coordinate-file';
+                        fileLabel.textContent = String.fromCharCode(97 + col);
+                        square.appendChild(fileLabel);
+                    }
+                    if (col === 0) {
+                        const rankLabel = document.createElement('div');
+                        rankLabel.className = 'coordinates coordinate-rank';
+                        rankLabel.textContent = 8 - row;
+                        square.appendChild(rankLabel);
+                    }
+
+                    // Add piece based on puzzle board state
+                    const cellValue = puzzleBoardState[row][col];
+                    if (cellValue >= 2) { // 2, 3, 4, 5 are pieces
+                        const pieceElement = document.createElement('div');
+                        let pieceClass = '';
+                        if (cellValue === 2) pieceClass = 'piece red';
+                        else if (cellValue === 3) pieceClass = 'piece white';
+                        else if (cellValue === 4) pieceClass = 'piece red king';
+                        else if (cellValue === 5) pieceClass = 'piece white king';
+
+                        pieceElement.className = pieceClass;
+                        pieceElement.dataset.row = row;
+                        pieceElement.dataset.col = col;
+                        if (puzzleSelectedPiece && puzzleSelectedPiece.row === row && puzzleSelectedPiece.col === col) {
+                            pieceElement.classList.add('selected');
+                        }
+                        square.appendChild(pieceElement);
+                    }
+
+                    // Show valid moves (simplified for mock)
+                    const moveKey = `${row},${col}`;
+                    if (puzzleValidMoves[moveKey]) {
+                        const moveIndicator = document.createElement('div');
+                        moveIndicator.className = puzzleValidMoves[moveKey].length > 0 ? 'capture-move' : 'valid-move';
+                        square.appendChild(moveIndicator);
+                    }
+
+                    square.addEventListener('click', () => handlePuzzleSquareClick(row, col));
+                    rowElement.appendChild(square);
+                }
+                puzzleBoardElement.appendChild(rowElement);
+            }
+        }
+
+        // --- Handle Puzzle Square Click ---
+        function handlePuzzleSquareClick(row, col) {
+            const cellValue = puzzleBoardState[row][col];
+
+            // If a piece is already selected
+            if (puzzleSelectedPiece) {
+                const moveKey = `${row},${col}`;
+                // If clicking on a valid move (simplified check)
+                if (puzzleValidMoves[moveKey]) {
+                    // Move the piece (mock logic)
+                    const fromRow = puzzleSelectedPiece.row;
+                    const fromCol = puzzleSelectedPiece.col;
+                    puzzleBoardState[row][col] = puzzleBoardState[fromRow][fromCol];
+                    puzzleBoardState[fromRow][fromCol] = (fromRow + fromCol) % 2 === 0 ? 0 : 1; // Reset to empty dark/light
+
+                    // Check win condition (simplified)
+                    // In a real game, you'd compare the board state to the solution
+                    showMessage("Move made! (This is a mockup. Real validation logic would go here.)", "info");
+
+                    puzzleSelectedPiece = null;
+                    puzzleValidMoves = {};
+                    renderPuzzleBoard();
+                    return;
+                }
+                // If clicking on another red piece, select it
+                if (cellValue === 2 || cellValue === 4) { // Red or Red King
+                    selectPuzzlePiece(row, col);
+                    return;
+                }
+                // Deselect if clicking elsewhere
+                deselectPuzzlePiece();
+                return;
+            }
+
+            // Select a red piece
+            if (cellValue === 2 || cellValue === 4) { // Red or Red King
+                selectPuzzlePiece(row, col);
+            }
+        }
+
+        // --- Select Puzzle Piece ---
+        function selectPuzzlePiece(row, col) {
+            puzzleSelectedPiece = { row, col };
+            // Mock valid moves for demonstration
+            // In a real game, you'd calculate valid moves based on checkers rules
+            puzzleValidMoves = {};
+            // Example: if piece is at (4,3), valid moves might be (3,2) and (3,4)
+            if (row === 4 && col === 3) {
+                 puzzleValidMoves[`3,2`] = []; // Regular move
+                 puzzleValidMoves[`3,4`] = []; // Regular move
+            }
+            // Example: if piece is at (3,2) and can capture
+            if (row === 3 && col === 2) {
+                 puzzleValidMoves[`1,0`] = [{row: 2, col: 1}]; // Capture move
+            }
+            renderPuzzleBoard();
+        }
+
+        // --- Deselect Puzzle Piece ---
+        function deselectPuzzlePiece() {
+            puzzleSelectedPiece = null;
+            puzzleValidMoves = {};
+            renderPuzzleBoard();
+        }
+
+        // --- Show Message ---
+        function showMessage(text, type) {
+            puzzleMessageElement.textContent = text;
+            puzzleMessageElement.className = `puzzle-message ${type}`;
+            puzzleMessageElement.style.display = 'block';
+            setTimeout(() => {
+                puzzleMessageElement.style.display = 'none';
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // --- Reset Puzzle ---
+        function resetPuzzle() {
+            if (currentPuzzle) {
+                loadPuzzle(currentPuzzle); // Reloads the initial state
+                showMessage("Puzzle reset to starting position.", "info");
+            }
+        }
+
+        // --- Solve Puzzle (Mock) ---
+        function solvePuzzle() {
+            if (currentPuzzle) {
+                // Mock solution display
+                const solutionText = currentPuzzle.solution.map(move =>
+                    `Move from ${String.fromCharCode(97 + move.from.col)}${8 - move.from.row} to ${String.fromCharCode(97 + move.to.col)}${8 - move.to.row}`
+                ).join(', ');
+                showMessage(`Solution: ${solutionText}`, "info");
+            }
+        }
+
+        // --- Back to Puzzle List ---
+        function backToPuzzles() {
+            puzzleGameArea.style.display = 'none';
+            puzzlesGrid.parentElement.style.display = 'block'; // Show list
+            currentPuzzle = null;
+        }
+
+        // --- Event Listeners ---
+        resetPuzzleBtn.addEventListener('click', resetPuzzle);
+        solvePuzzleBtn.addEventListener('click', solvePuzzle);
+        backToPuzzlesBtn.addEventListener('click', backToPuzzles);
+
+        // --- Initialize on Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initPuzzleList();
+        });
+    </script>
+</body>
+</html>
