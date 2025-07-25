@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Pro Checkers</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo"><i class="fas fa-crown"></i> Pro Checkers</a>
+        <div class="nav-links">
+             <a href="index.html" class="nav-link">Home</a>
+             <a href="game.html" class="nav-link">Play</a>
+        </div>
+        <div class="nav-buttons">
+            <a href="login.html" class="btn btn-outline btn-sm">Login</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="page-container">
+            <h1 class="page-title">Create Account</h1>
+            <p class="page-subtitle">Join Pro Checkers to play online and track your progress.</p>
+
+            <div id="alertMessage" class="alert alert-success" style="display: none;">
+                <!-- Messages will appear here -->
+            </div>
+
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="regUsername">Username</label>
+                    <input type="text" id="regUsername" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">Email</label>
+                    <input type="email" id="regEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Password</label>
+                    <input type="password" id="regPassword" name="password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label for="regConfirmPassword">Confirm Password</label>
+                    <input type="password" id="regConfirmPassword" name="confirm_password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Sign Up</button>
+            </form>
+
+            <div class="form-footer">
+                <p>Already have an account? <a href="login.html">Login</a></p>
+                <!-- Guest Access Link -->
+                <p style="margin-top: 10px;">
+                    Want to try it out first? <a href="login.html">Play as a Guest</a>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 Pro Checkers. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('regUsername').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const alertMessage = document.getElementById('alertMessage');
+
+            // Basic validation
+            if (!username || !email || !password || !confirmPassword) {
+                showAlert("Please fill in all fields.", "error");
+                return;
+            }
+            if (password !== confirmPassword) {
+                showAlert("Passwords do not match.", "error");
+                return;
+            }
+            if (password.length < 6) {
+                showAlert("Password must be at least 6 characters long.", "error");
+                return;
+            }
+
+            // --- Simulate API Call for Registration ---
+            /*
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showAlert("Registration successful! Please log in.", "success");
+                    // Clear form
+                    document.getElementById('registerForm').reset();
+                    // Optionally redirect after a delay
+                    // setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+                } else {
+                    showAlert(data.message || "Registration failed.", "error");
+                }
+            } catch (error) {
+                console.error('Error during registration:', error);
+                showAlert("An error occurred. Please try again.", "error");
+            }
+            */
+
+            // --- Mockup for demonstration ---
+            showAlert("Registration successful! (This is a demo). Please log in.", "success");
+            document.getElementById('registerForm').reset();
+            // --- End Mockup ---
+        });
+
+        function showAlert(message, type) {
+            const alertMessage = document.getElementById('alertMessage');
+            alertMessage.textContent = message;
+            alertMessage.className = `alert alert-${type}`;
+            alertMessage.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Pro Checkers</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo"><i class="fas fa-crown"></i> Pro Checkers</a>
+        <div class="nav-links">
+             <a href="index.html" class="nav-link">Home</a>
+             <a href="game.html" class="nav-link">Play</a>
+        </div>
+        <div class="nav-buttons">
+            <a href="register.html" class="btn btn-primary btn-sm">Sign Up</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="page-container">
+            <h1 class="page-title">Welcome Back</h1>
+            <p class="page-subtitle">Sign in to your Pro Checkers account</p>
+
+            <div id="alertMessage" class="alert alert-error" style="display: none;">
+                <!-- Error messages will appear here -->
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username or Email</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+            </form>
+
+            <!-- Guest Login Section -->
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <p style="text-align: center; margin-bottom: 15px;">Or, quickly start playing:</p>
+                <button id="guestLoginBtn" class="btn btn-outline" style="width: 100%;">
+                    <i class="fas fa-user-clock"></i> Play as Guest
+                </button>
+            </div>
+
+            <div class="form-footer">
+                <p>Don't have an account? <a href="register.html">Sign Up</a></p>
+                <p><a href="#">Forgot Password?</a></p>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 Pro Checkers. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Handle regular login form submission
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const alertMessage = document.getElementById('alertMessage');
+
+            // Basic validation
+            if (!username || !password) {
+                showAlert("Please fill in all fields.", "error");
+                return;
+            }
+
+            // --- Simulate API Call for Real Login ---
+            // In a real app, you'd send a POST request to your backend server
+            /*
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    console.log("Login successful:", data);
+                    localStorage.setItem('procheckers_token', data.token); // Store token
+                    localStorage.setItem('procheckers_user', JSON.stringify(data.user)); // Store user data if needed
+                    window.location.href = 'game.html'; // Redirect to game
+                } else {
+                    showAlert(data.message || "Login failed.", "error");
+                }
+            } catch (error) {
+                console.error('Error during login:', error);
+                showAlert("An error occurred. Please try again.", "error");
+            }
+            */
+
+            // --- Mockup for demonstration ---
+            if (username === 'fail') {
+                showAlert("Invalid username or password.", "error");
+            } else {
+                console.log("Mock Login successful for:", username);
+                // Simulate storing a token and user data
+                localStorage.setItem('procheckers_token', 'mock_user_token_' + username);
+                localStorage.setItem('procheckers_user', JSON.stringify({ username: username, isGuest: false }));
+                setTimeout(() => {
+                    window.location.href = 'game.html';
+                }, 500);
+            }
+            // --- End Mockup ---
+        });
+
+        // Handle Guest Login
+        document.getElementById('guestLoginBtn').addEventListener('click', function() {
+             // Generate a simple guest identifier (in a real app, the backend would do this)
+             const guestId = 'guest_' + Date.now();
+             const guestUsername = 'Guest' + Math.floor(1000 + Math.random() * 9000); // e.g., Guest1234
+
+             console.log("Guest login initiated:", guestUsername);
+             // Store a guest token and user data
+             localStorage.setItem('procheckers_token', 'guest_token_' + guestId);
+             localStorage.setItem('procheckers_user', JSON.stringify({ username: guestUsername, isGuest: true }));
+             // Redirect to game
+             window.location.href = 'game.html';
+        });
+
+        function showAlert(message, type) {
+            const alertMessage = document.getElementById('alertMessage');
+            alertMessage.textContent = message;
+            alertMessage.className = `alert alert-${type}`;
+            alertMessage.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
